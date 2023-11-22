@@ -10,6 +10,7 @@ class WeatherReport:
     """
     Class to get the weather report of a specific location
     """
+
     def get_location_details(self):
         """
         This method to get the location details by passing
@@ -44,4 +45,3 @@ if __name__ == "__main__":
     print(city_name)
     weather_response = weather_report.get_weather_report(city_name)
     print(weather_response)
-
