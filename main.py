@@ -44,3 +44,4 @@ if __name__ == "__main__":
     print(city_name)
     weather_response = weather_report.get_weather_report(city_name)
     print(weather_response)
+

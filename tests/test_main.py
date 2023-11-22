@@ -92,3 +92,4 @@ def test_get_weather_report_2(request_mock):
     response = weather_report.get_weather_report("Watertown")
     assert response == "Exception occurred due to ('invalid url',)"
     request_mock.request.assert_called_once()
+
