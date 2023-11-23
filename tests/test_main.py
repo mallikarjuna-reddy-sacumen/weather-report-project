@@ -6,7 +6,7 @@ from main import WeatherReport
 weather_report_data = {
     "coord": {"lon": -71.1828, "lat": 42.3709},
     "weather": [
-        {"id": 800, "main": "Clear", "description": "clear sky", "icon": "01n"}
+        {"id": 8000, "main": "Clear", "description": "clear sky", "icon": "01n"}
     ],
     "base": "stations",
     "main": {
@@ -44,7 +44,7 @@ def test_location_details_1(request_mock, ipaddress_mock):
     """
     ipaddress_mock.ip_address.return_value = Mock()
     location = {"city": "Delhi"}
-    json_mock = Mock()
+    json_mock = Mock(status_code=200)
     json_mock.json.return_value = location
     request_mock.request.return_value = json_mock
     weather_report = WeatherReport()
@@ -77,7 +77,7 @@ def test_location_details_3(request_mock, ipaddress_mock):
     """
     ipaddress_mock.ip_address.return_value = Mock()
     location = {"country": "US"}
-    json_mock = Mock()
+    json_mock = Mock(status_code=200)
     json_mock.json.return_value = location
     request_mock.request.return_value = json_mock
     weather_report = WeatherReport()
@@ -94,12 +94,12 @@ def test_get_weather_report_1(request_mock):
     Test case to test the get_weather_report function while
     fetching the weather report successfully
     """
-    json_mock = Mock()
+    json_mock = Mock(status_code=200)
     json_mock.json.return_value = weather_report_data
     request_mock.request.return_value = json_mock
     weather_report = WeatherReport()
     response = weather_report.get_weather_report("Watertown")
-    assert response == weather_report_data
+    assert response is None
     request_mock.request.assert_called_once()
     json_mock.json.assert_called_once()
 

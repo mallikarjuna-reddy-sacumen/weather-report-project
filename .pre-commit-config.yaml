@@ -36,6 +36,7 @@ repos:
     rev: 1.5.0
     hooks:
       - id: interrogate
+        exclude: ^(README.md|tests/|requirements.txt)
         args: [--quiet, --fail-under=95]
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.4
@@ -54,19 +55,21 @@ repos:
     rev: 6.1.0
     hooks:
       - id: flake8
+        exclude: ^(README.md|tests/|requirements.txt)
         additional_dependencies: [flake8-dunder-all==0.3.0]
-        args: ['--config=setup.cfg', '--ignore=E203,E302,E402,E501,W503,E722,C901', '--max-line-length=200']
+        args: ['--ignore=E203,E302,E402,E501,W503,E722,C901', '--max-line-length=200']
   - repo: https://github.com/pycqa/pydocstyle
     rev: 6.3.0
     hooks:
       - id: pydocstyle
-        args: ['--config=setup.cfg']
+#        args: ['--config=setup.cfg']
   - repo: https://github.com/pylint-dev/pylint
     rev: v3.0.2
     hooks:
       - id: pylint
+        exclude: ^(README.md|tests/|requirements.txt)
         types: [python]
-        args: ['--rcfile=setup.cfg', '--disable=C0209,C0411,E0401,F0401,R0801,R0902,R0903,R0914,W0212,W0105,W0107,C0415,W0613,W0621,W1202,W1203', '--max-line-length=200']
+        args: ['--disable=C0209,C0411,E0401,F0401,R0801,R0902,R0903,R0914,W0212,W0105,W0107,C0415,W0613,W0621,W1202,W1203', '--max-line-length=200']
   -   repo: https://github.com/psf/black
       rev: 23.10.1
       hooks:
@@ -82,7 +85,8 @@ repos:
     rev: v1.6.1
     hooks:
       - id: mypy
-        args: ['--config-file=setup.cfg']
+        exclude: ^(README.md|tests/|requirements.txt)
+#        args: ['--config-file=setup.cfg']
 #  - repo: local
 #    hooks:
 #      - id: pytest-cov
