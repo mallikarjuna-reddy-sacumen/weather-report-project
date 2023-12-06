@@ -1,117 +1,91 @@
 """This file consists unit test cases of the development code"""
-from unittest.mock import Mock, patch
 from main import WeatherReport
+from .test_data import CITY, OK_STATUS_CODE, FAILURE_STATUS_CODE, WEATHER_REPORT_DATA
 
 
-weather_report_data = {
-    "coord": {"lon": -71.1828, "lat": 42.3709},
-    "weather": [
-        {"id": 8000, "main": "Clear", "description": "clear sky", "icon": "01n"}
-    ],
-    "base": "stations",
-    "main": {
-        "temp": 269.79,
-        "feels_like": 265.06,
-        "temp_min": 267.31,
-        "temp_max": 271.96,
-        "pressure": 1034,
-        "humidity": 66,
-    },
-    "visibility": 10000,
-    "wind": {"speed": 3.6, "deg": 330},
-    "clouds": {"all": 0},
-    "dt": 1700549404,
-    "sys": {
-        "type": 2,
-        "id": 2013673,
-        "country": "US",
-        "sunrise": 1700566964,
-        "sunset": 1700601522,
-    },
-    "timezone": -18000,
-    "id": 4954611,
-    "name": "Watertown",
-    "cod": 200,
-}
-
-
-@patch("main.ipaddress")
-@patch("main.requests")
-def test_location_details_1(request_mock, ipaddress_mock):
+def test_location_details_1(mocker) -> None:
     """
     Test case to test the get_location_details function when
     fetching the location details successful
     """
-    ipaddress_mock.ip_address.return_value = Mock()
-    location = {"city": "Delhi"}
-    json_mock = Mock(status_code=200)
-    json_mock.json.return_value = location
-    request_mock.request.return_value = json_mock
-    weather_report = WeatherReport()
-    response = weather_report.get_location_details()
-    assert response == location["city"]
-    ipaddress_mock.ip_address.assert_called_once()
-    request_mock.request.assert_called_once()
-    json_mock.json.assert_called_once()
+
+    json_mock = mocker.MagicMock(return_value=CITY)
+    status_code_mock = mocker.MagicMock(status_code=OK_STATUS_CODE, json=json_mock)
+    request_mock = mocker.patch("main.requests.request", return_value=status_code_mock)
+    response = WeatherReport().get_location_details()
+    assert response == CITY["city"]
+    request_mock.assert_called_once()
+    json_mock.assert_called_once()
 
 
-@patch("main.ipaddress")
-def test_location_details_2(ipaddress_mock):
+def test_location_details_2(mocker) -> None:
     """
     Test case to test the get_location_details function when
-    ip_address method returning ValueError
+    status code is not 200
     """
-    ipaddress_mock.ip_address.side_effect = [ValueError("pass valid ipaddress")]
-    weather_report = WeatherReport()
-    response = weather_report.get_location_details()
-    assert response == "Invalid IPAddress due to ('pass valid ipaddress',)"
-    ipaddress_mock.ip_address.assert_called_once()
 
-
-@patch("main.ipaddress")
-@patch("main.requests")
-def test_location_details_3(request_mock, ipaddress_mock):
-    """
-    Test case to test the get_location_details function when
-    KeyError occurs
-    """
-    ipaddress_mock.ip_address.return_value = Mock()
-    location = {"country": "US"}
-    json_mock = Mock(status_code=200)
-    json_mock.json.return_value = location
-    request_mock.request.return_value = json_mock
-    weather_report = WeatherReport()
-    response = weather_report.get_location_details()
-    assert response == "Exception occurred due to ('city',)"
-    ipaddress_mock.ip_address.assert_called_once()
-    request_mock.request.assert_called_once()
-    json_mock.json.assert_called_once()
-
-
-@patch("main.requests")
-def test_get_weather_report_1(request_mock):
-    """
-    Test case to test the get_weather_report function while
-    fetching the weather report successfully
-    """
-    json_mock = Mock(status_code=200)
-    json_mock.json.return_value = weather_report_data
-    request_mock.request.return_value = json_mock
-    weather_report = WeatherReport()
-    response = weather_report.get_weather_report("Watertown")
+    raise_for_status_mock = mocker.MagicMock(
+        side_effect=[ValueError("Failed to fetch the data")]
+    )
+    status_code_mock = mocker.MagicMock(
+        status_code=FAILURE_STATUS_CODE, raise_for_status=raise_for_status_mock
+    )
+    request_mock = mocker.patch("main.requests.request", return_value=status_code_mock)
+    response = WeatherReport().get_location_details()
     assert response is None
-    request_mock.request.assert_called_once()
-    json_mock.json.assert_called_once()
+    request_mock.assert_called_once()
+    raise_for_status_mock.assert_called_once()
 
 
-@patch("main.requests")
-def test_get_weather_report_2(request_mock):
+def test_location_details_3(mocker) -> None:
     """
-    Test case to test the get_weather_report function while
-    getting exception
+    Test case to test the get_location_details function when
+    Exception occurs
     """
-    request_mock.request.side_effect = [Exception("invalid url")]
-    weather_report = WeatherReport()
-    response = weather_report.get_weather_report("Watertown")
-    assert response == "Exception occurred due to ('invalid url',)"
-    request_mock.request.assert_called_once()
+
+    request_mock = mocker.patch(
+        "main.requests.request", side_effect=[Exception("Invalid request")]
+    )
+    response = WeatherReport().get_location_details()
+    assert response is None
+    request_mock.assert_called_once()
+
+
+def test_get_weather_report_1(mocker) -> None:
+    """
+    Test case to test the get_weather_report function when
+    fetching the weather report successful
+    """
+
+    furl_mock = mocker.patch("main.furl")
+    json_mock = mocker.MagicMock(return_value=WEATHER_REPORT_DATA)
+    status_code_mock = mocker.MagicMock(status_code=OK_STATUS_CODE, json=json_mock)
+    request_mock = mocker.patch("main.requests.request", return_value=status_code_mock)
+    writing_to_json_file_mock = mocker.patch("main.WeatherReport.writing_to_json_file")
+    response = WeatherReport().get_weather_report(city_name=CITY["city"])
+    assert response is None
+    request_mock.assert_called_once()
+    json_mock.assert_called_once()
+    furl_mock.assert_called_once()
+    writing_to_json_file_mock.assert_called_once()
+
+
+def test_get_weather_report_2(mocker) -> None:
+    """
+    Test case to test the get_weather_report function when
+    Exception occurs
+    """
+
+    furl_mock = mocker.patch("main.furl")
+    raise_for_status_mock = mocker.MagicMock(
+        side_effect=[Exception("Failed to fetch the weather data")]
+    )
+    status_code_mock = mocker.MagicMock(
+        status_code=FAILURE_STATUS_CODE, raise_for_status=raise_for_status_mock
+    )
+    request_mock = mocker.patch("main.requests.request", return_value=status_code_mock)
+    response = WeatherReport().get_weather_report(city_name=CITY["city"])
+    assert response is None
+    request_mock.assert_called_once()
+    raise_for_status_mock.assert_called_once()
+    furl_mock.assert_called_once()

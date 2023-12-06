@@ -1,3 +1,5 @@
 furl
+pre-commit
 pytest
+pytest-mock
 requests
